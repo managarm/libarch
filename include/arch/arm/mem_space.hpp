@@ -23,7 +23,7 @@ namespace _detail {
 
 		static void store(uint8_t *p, uint8_t v) {
 			asm volatile("strb %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p) : "memory");
+				: : [value] "r"(v), [src] "r"(p) : "memory");
 		}
 
 		static uint8_t load_relaxed(const uint8_t *p) {
@@ -35,7 +35,7 @@ namespace _detail {
 
 		static void store_relaxed(uint8_t *p, uint8_t v) {
 			asm volatile("strb %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p));
+				: : [value] "r"(v), [src] "r"(p));
 		}
 
 		uint8_t atomic_exchange(uint8_t *p, uint8_t v) {
@@ -61,7 +61,7 @@ namespace _detail {
 
 		static void store(uint16_t *p, uint16_t v) {
 			asm volatile("strh %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p) : "memory");
+				: : [value] "r"(v), [src] "r"(p) : "memory");
 		}
 
 		static uint16_t load_relaxed(const uint16_t *p) {
@@ -73,7 +73,7 @@ namespace _detail {
 
 		static void store_relaxed(uint16_t *p, uint16_t v) {
 			asm volatile("strh %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p));
+				: : [value] "r"(v), [src] "r"(p));
 		}
 
 		uint16_t atomic_exchange(uint16_t *p, uint16_t v) {
@@ -99,7 +99,7 @@ namespace _detail {
 
 		static void store(uint32_t *p, uint32_t v) {
 			asm volatile("str %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p) : "memory");
+				: : [value] "r"(v), [src] "r"(p) : "memory");
 		}
 
 		static uint32_t load_relaxed(const uint32_t *p) {
@@ -111,7 +111,7 @@ namespace _detail {
 
 		static void store_relaxed(uint32_t *p, uint32_t v) {
 			asm volatile("str %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p));
+				: : [value] "r"(v), [src] "r"(p));
 		}
 
 		uint32_t atomic_exchange(uint32_t *p, uint32_t v) {
