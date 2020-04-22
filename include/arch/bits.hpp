@@ -67,8 +67,6 @@ struct bit_value {
 		return *this;
 	}
 
-
-
 	// allow masking out individual bits.
 	bit_value operator& (bit_mask<B> other) const {
 		return bit_value(_bits & static_cast<B>(other));
@@ -83,10 +81,9 @@ struct bit_value {
 		return bit_value((_bits & ~other.mask()) | other.bits());
 	}
 	bit_value &operator/= (masked_bit_value<B> other) {
-		*this = *this * other;
+		*this = *this / other;
 		return *this;
 	}
-
 
 private:
 	B _bits;
