@@ -1,11 +1,15 @@
-project('libarch', 'cpp')
+project('libarch', 'cpp', default_options: ['cpp_std=c++17'])
 
 libarch_inc = include_directories('include/')
 
 if host_machine.system() == 'managarm'
+	if meson.get_compiler('cpp').get_id() == 'clang'
+		add_project_arguments('-fsized-deallocation', language: 'cpp')
+	endif
+
 	libarch_lib = shared_library('arch', 'src/dma_pool.cpp',
-		include_directories: libarch_inc,
-		dependencies: lib_helix_dep, # ???
+		cpp_args: ['-std=c++17'],
+		include_directories: [libarch_inc, 'subprojects/managarm/hel/include'],
 		install: true)
 
 	libarch_dep = declare_dependency(
