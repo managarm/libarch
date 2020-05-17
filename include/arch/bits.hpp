@@ -34,6 +34,32 @@ struct masked_bit_value {
 		return _bits;
 	}
 
+	// allow building a value from multiple bit vectors.
+	masked_bit_value operator| (masked_bit_value other) const {
+		return masked_bit_value(_bits | other.bits(), _mask | other.mask());
+	}
+	masked_bit_value &operator|= (masked_bit_value other) {
+		*this = *this | other;
+		return *this;
+	}
+
+	// allow masking out individual bits.
+	masked_bit_value operator& (bit_mask<B> other) const {
+		return masked_bit_value(_bits & static_cast<B>(other), _mask & ~static_cast<B>(other));
+	}
+	masked_bit_value &operator&= (bit_mask<B> other) {
+		*this = *this & other;
+		return *this;
+	}
+
+	masked_bit_value operator/ (masked_bit_value other) const {
+		return masked_bit_value((_bits & ~other.mask()) | other.bits(), _mask);
+	}
+	masked_bit_value &operator/= (masked_bit_value other) {
+		*this = *this / other;
+		return *this;
+	}
+
 private:
 	B _bits;
 	B _mask;
@@ -48,6 +74,9 @@ struct bit_value {
 	explicit operator B () {
 		return _bits;
 	}
+
+	bit_value(masked_bit_value<B> v)
+	: _bits{v.bits()} { }
 
 	// allow building a value from multiple bit vectors.
 	bit_value operator| (bit_value other) const {
