@@ -26,6 +26,7 @@ if get_option('install_headers')
 		'include/arch/mem_space.hpp',
 		'include/arch/register.hpp',
 		'include/arch/variable.hpp',
+		'include/arch/bit.hpp',
 		subdir: 'arch/')
 	install_headers(
 		'include/arch/os-managarm/dma_pool.hpp',
