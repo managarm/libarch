@@ -1,6 +1,7 @@
 #ifndef LIBARCH_VARIABLE_HPP
 #define LIBARCH_VARIABLE_HPP
 
+#include <arch/bit.hpp>
 #include <arch/bits.hpp>
 #include <arch/mem_space.hpp>
 
@@ -37,6 +38,34 @@ using scalar_variable = basic_variable<T, T>;
 
 template<typename B>
 using bit_variable = basic_variable<bit_value<B>, B>;
+
+template<typename R, typename B, endian E>
+struct basic_storage {
+	using rep_type = R;
+	using bits_type = B;
+
+	basic_storage() = default;
+
+	constexpr basic_storage(R r)
+	: _embedded{convert_endian<E, endian::native, B>(static_cast<B>(r))} { }
+
+	R load() {
+		return static_cast<R>(convert_endian<endian::native, E, B>(_embedded));
+	}
+
+	void store(R r) {
+		_embedded = convert_endian<E, endian::native, B>(static_cast<B>(r));
+	}
+
+private:
+	B _embedded;
+};
+
+template<typename T, endian E>
+using scalar_storage = basic_storage<T, T, E>;
+
+template<typename B, endian E>
+using bit_storage = basic_storage<bit_value<B>, B, E>;
 
 } // namespace arch
 
