@@ -48,6 +48,10 @@ if get_option('install_headers')
 		install_headers(
 			'include/arch/arm/mem_space.hpp',
 			subdir: 'arch/arm/')
+	elif host_machine.cpu_family() == 'aarch64'
+		install_headers(
+			'include/arch/aarch64/mem_space.hpp',
+			subdir: 'arch/aarch64/')
 	else
 		error('Unknown CPU architecture')
 	endif
