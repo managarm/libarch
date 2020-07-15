@@ -3,18 +3,22 @@ project('libarch', 'cpp', default_options: ['cpp_std=c++17'])
 libarch_inc = include_directories('include/')
 
 if host_machine.system() == 'managarm'
-	if meson.get_compiler('cpp').get_id() == 'clang'
-		add_project_arguments('-fsized-deallocation', language: 'cpp')
+	if not get_option('header_only')
+		if meson.get_compiler('cpp').get_id() == 'clang'
+			add_project_arguments('-fsized-deallocation', language: 'cpp')
+		endif
+
+		libarch_lib = shared_library('arch', 'src/dma_pool.cpp',
+			cpp_args: ['-std=c++17'],
+			include_directories: [libarch_inc, 'subprojects/managarm/hel/include'],
+			install: true)
+
+		libarch_dep = declare_dependency(
+			link_with: libarch_lib,
+			include_directories: libarch_inc)
+	else
+		libarch_dep = declare_dependency(include_directories: libarch_inc)
 	endif
-
-	libarch_lib = shared_library('arch', 'src/dma_pool.cpp',
-		cpp_args: ['-std=c++17'],
-		include_directories: [libarch_inc, 'subprojects/managarm/hel/include'],
-		install: true)
-
-	libarch_dep = declare_dependency(
-		link_with: libarch_lib,
-		include_directories: libarch_inc)
 elif host_machine.system() == 'bare'
 	libarch_dep = declare_dependency(include_directories: libarch_inc)
 else
