@@ -3,14 +3,7 @@
 
 #include <arch/bit.hpp>
 #include <arch/bits.hpp>
-
-#if defined(__x86_64__)
 #include <arch/mem_space.hpp>
-#elif defined(__aarch64__)
-#include <arch/aarch64/mem_space.hpp>
-#elif defined(__arm__)
-#include <arch/arm/mem_space.hpp>
-#endif
 
 namespace arch {
 
