@@ -3,7 +3,6 @@
 
 #include <arch/bit.hpp>
 #include <arch/bits.hpp>
-#include <arch/mem_space.hpp>
 
 namespace arch {
 
