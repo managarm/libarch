@@ -1,4 +1,4 @@
-project('libarch', 'cpp', default_options: ['cpp_std=c++17'])
+project('libarch', 'cpp', default_options: ['cpp_std=c++20'])
 
 libarch_inc = include_directories('include/')
 
@@ -9,7 +9,7 @@ if host_machine.system() == 'managarm'
 		endif
 
 		libarch_lib = shared_library('arch', 'src/dma_pool.cpp',
-			cpp_args: ['-std=c++17'],
+			cpp_args: ['-std=c++20'],
 			include_directories: [libarch_inc, 'subprojects/managarm/hel/include'],
 			install: true)
 
