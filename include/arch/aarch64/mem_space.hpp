@@ -200,6 +200,20 @@ namespace _detail {
 			return static_cast<typename RT::rep_type>(b);
 		}
 
+		template<typename RT>
+		void store_relaxed(RT r, typename RT::rep_type value) const {
+			auto p = reinterpret_cast<typename RT::bits_type *>(_base + r.offset());
+			auto v = static_cast<typename RT::bits_type>(value);
+			mem_ops<typename RT::bits_type>::store_relaxed(p, v);
+		}
+
+		template<typename RT>
+		typename RT::rep_type load_relaxed(RT r) const {
+			auto p = reinterpret_cast<const typename RT::bits_type *>(_base + r.offset());
+			auto b = mem_ops<typename RT::bits_type>::load_relaxed(p);
+			return static_cast<typename RT::rep_type>(b);
+		}
+
 	private:
 		uintptr_t _base;
 	};

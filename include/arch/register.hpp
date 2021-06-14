@@ -42,6 +42,16 @@ void scalar_store(Space &s, ptrdiff_t offset, T val) {
 	return s.store(scalar_register<T>(offset), val);
 }
 
+template<typename T, typename Space>
+T scalar_load_relaxed(Space &s, ptrdiff_t offset) {
+	return s.load_relaxed(scalar_register<T>(offset));
+}
+
+template<typename T, typename Space>
+void scalar_store_relaxed(Space &s, ptrdiff_t offset, T val) {
+	return s.store_relaxed(scalar_register<T>(offset), val);
+}
+
 } // namespace arch
 
 #endif // LIBARCH_REGISTER_HPP
