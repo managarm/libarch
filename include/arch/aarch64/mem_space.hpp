@@ -23,9 +23,9 @@ namespace _detail {
 		}
 
 		static void store(uint8_t *p, uint8_t v) {
+			asm volatile("dsb st" ::: "memory");
 			asm volatile("strb %w[value], [%[src]]"
 				: : [value] "r"(v), [src] "r"(p) : "memory");
-			asm volatile("dsb st" ::: "memory");
 		}
 
 		static uint8_t load_relaxed(const uint8_t *p) {
@@ -63,9 +63,9 @@ namespace _detail {
 		}
 
 		static void store(uint16_t *p, uint16_t v) {
+			asm volatile("dsb st" ::: "memory");
 			asm volatile("strh %w[value], [%[src]]"
 				: : [value] "r"(v), [src] "r"(p) : "memory");
-			asm volatile("dsb st" ::: "memory");
 		}
 
 		static uint16_t load_relaxed(const uint16_t *p) {
@@ -103,9 +103,9 @@ namespace _detail {
 		}
 
 		static void store(uint32_t *p, uint32_t v) {
+			asm volatile("dsb st" ::: "memory");
 			asm volatile("str %w[value], [%[src]]"
 				: : [value] "r"(v), [src] "r"(p) : "memory");
-			asm volatile("dsb st" ::: "memory");
 		}
 
 		static uint32_t load_relaxed(const uint32_t *p) {
@@ -143,9 +143,9 @@ namespace _detail {
 		}
 
 		static void store(uint64_t *p, uint64_t v) {
+			asm volatile("dsb st" ::: "memory");
 			asm volatile("str %[value], [%[src]]"
 				: : [value] "r"(v), [src] "r"(p) : "memory");
-			asm volatile("dsb st" ::: "memory");
 		}
 
 		static uint64_t load_relaxed(const uint64_t *p) {
