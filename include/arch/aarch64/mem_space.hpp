@@ -40,13 +40,13 @@ namespace _detail {
 				: : [value] "r"(v), [src] "r"(p));
 		}
 
-		uint8_t atomic_exchange(uint8_t *p, uint8_t v) {
-			uint32_t t, s = 1;
+		static uint8_t atomic_exchange(uint64_t *p, uint64_t v) {
+			uint64_t t, s = 1;
 			while (s) {
-				asm volatile("ldrexb %w[value], [%[src]]"
-					: [value] "=r"(t) : [src] "r"(p) : "memory");
-				asm volatile("strexb %w[status], %w[value], [%w[dest]]"
-					: [status] "=r"(s) : [value] "r"(v), [dest] "r"(p) : "memory");
+				asm volatile("ldxrb %w0, [%1]"
+					: "=r"(t) : "r"(p) : "memory");
+				asm volatile("stxrb %w0, %w1, [%2]"
+					: "=&r"(s) : "r"(v), "r"(p) : "memory");
 			}
 			return t;
 		}
@@ -80,13 +80,13 @@ namespace _detail {
 				: : [value] "r"(v), [src] "r"(p));
 		}
 
-		uint16_t atomic_exchange(uint16_t *p, uint16_t v) {
-			uint32_t t, s = 1;
+		static uint16_t atomic_exchange(uint64_t *p, uint64_t v) {
+			uint64_t t, s = 1;
 			while (s) {
-				asm volatile("ldrexh %w[value], [%[src]]"
-					: [value] "=r"(t) : [src] "r"(p) : "memory");
-				asm volatile("strexh %w[status], %w[value], [%[dest]]"
-					: [status] "=r"(s) : [value] "r"(v), [dest] "r"(p) : "memory");
+				asm volatile("ldxrh %w0, [%1]"
+					: "=r"(t) : "r"(p) : "memory");
+				asm volatile("stxrh %w0, %w1, [%2]"
+					: "=&r"(s) : "r"(v), "r"(p) : "memory");
 			}
 			return t;
 		}
@@ -120,13 +120,13 @@ namespace _detail {
 				: : [value] "r"(v), [src] "r"(p));
 		}
 
-		uint32_t atomic_exchange(uint32_t *p, uint32_t v) {
-			uint32_t t, s = 1;
+		static uint32_t atomic_exchange(uint64_t *p, uint64_t v) {
+			uint64_t t, s = 1;
 			while (s) {
-				asm volatile("ldrex %w[value], [%[src]]"
-					: [value] "=r"(t) : [src] "r"(p) : "memory");
-				asm volatile("strex %w[status], %w[value], [%[dest]]"
-					: [status] "=r"(s) : [value] "r"(v), [dest] "r"(p) : "memory");
+				asm volatile("ldxr %w0, [%1]"
+					: "=r"(t) : "r"(p) : "memory");
+				asm volatile("stxr %w0, %w1, [%2]"
+					: "=&r"(s) : "r"(v), "r"(p) : "memory");
 			}
 			return t;
 		}
@@ -160,13 +160,13 @@ namespace _detail {
 				: : [value] "r"(v), [src] "r"(p));
 		}
 
-		uint32_t atomic_exchange(uint64_t *p, uint64_t v) {
+		static uint64_t atomic_exchange(uint64_t *p, uint64_t v) {
 			uint64_t t, s = 1;
 			while (s) {
-				asm volatile("ldrex %[value], [%[src]]"
-					: [value] "=r"(t) : [src] "r"(p) : "memory");
-				asm volatile("strex %[status], %[value], [%[dest]]"
-					: [status] "=r"(s) : [value] "r"(v), [dest] "r"(p) : "memory");
+				asm volatile("ldxr %0, [%1]"
+					: "=r"(t) : "r"(p) : "memory");
+				asm volatile("stxr %w0, %1, [%2]"
+					: "=&r"(s) : "r"(v), "r"(p) : "memory");
 			}
 			return t;
 		}
