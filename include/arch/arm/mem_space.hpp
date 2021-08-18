@@ -16,35 +16,34 @@ namespace _detail {
 	struct mem_ops<uint8_t> {
 		static uint8_t load(const uint8_t *p) {
 			uint8_t v;
-			asm volatile("ldrb %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p) : "memory");
+			asm volatile("ldrb %0, %1"
+				: "=l"(v) : "m"(*p) : "memory");
 			return v;
 		}
 
 		static void store(uint8_t *p, uint8_t v) {
-			asm volatile("strb %[value], [%[src]]"
-				: : [value] "r"(v), [src] "r"(p) : "memory");
+			asm volatile("strb %0, %1"
+				: : "l"(v), "m"(*p) : "memory");
 		}
 
 		static uint8_t load_relaxed(const uint8_t *p) {
 			uint8_t v;
-			asm volatile("ldrb %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p));
+			asm volatile("ldrb %0, %1"
+				: "=l"(v) : "m"(*p));
 			return v;
 		}
 
 		static void store_relaxed(uint8_t *p, uint8_t v) {
-			asm volatile("strb %[value], [%[src]]"
-				: : [value] "r"(v), [src] "r"(p));
+			asm volatile("strb %0, %1"
+				: : "l"(v), "m"(*p));
 		}
 
 		uint8_t atomic_exchange(uint8_t *p, uint8_t v) {
 			uint32_t t, s = 1;
 			while (s) {
-				asm volatile("ldrexb %[value], [%[src]]"
-					: [value] "=r"(t) : [src] "r"(p) : "memory");
-				asm volatile("strexb %[status], %[value], [%[dest]]"
-					: [status] "=r"(s) : [value] "r"(v), [dest] "r"(p) : "memory");
+				asm volatile("ldrexb %1, %2\n\tstrexb %0, %3, %2"
+						: "=&l"(s), "=&l"(t) : "m"(*p), "l"(v)
+						: "memory");
 			}
 			return t;
 		}
@@ -54,35 +53,34 @@ namespace _detail {
 	struct mem_ops<uint16_t> {
 		static uint16_t load(const uint16_t *p) {
 			uint16_t v;
-			asm volatile("ldrh %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p) : "memory");
+			asm volatile("ldrh %0, %1"
+				: "=l"(v) : "m"(*p) : "memory");
 			return v;
 		}
 
 		static void store(uint16_t *p, uint16_t v) {
-			asm volatile("strh %[value], [%[src]]"
-				: : [value] "r"(v), [src] "r"(p) : "memory");
+			asm volatile("strh %0, %1"
+				: : "l"(v), "m"(*p) : "memory");
 		}
 
 		static uint16_t load_relaxed(const uint16_t *p) {
 			uint16_t v;
-			asm volatile("ldrh %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p));
+			asm volatile("ldrh %0, %1"
+				: "=l"(v) : "m"(*p));
 			return v;
 		}
 
 		static void store_relaxed(uint16_t *p, uint16_t v) {
-			asm volatile("strh %[value], [%[src]]"
-				: : [value] "r"(v), [src] "r"(p));
+			asm volatile("strh %0, %1"
+				: : "l"(v), "m"(*p));
 		}
 
 		uint16_t atomic_exchange(uint16_t *p, uint16_t v) {
 			uint32_t t, s = 1;
 			while (s) {
-				asm volatile("ldrexh %[value], [%[src]]"
-					: [value] "=r"(t) : [src] "r"(p) : "memory");
-				asm volatile("strexh %[status], %[value], [%[dest]]"
-					: [status] "=r"(s) : [value] "r"(v), [dest] "r"(p) : "memory");
+				asm volatile("ldrexh %1, %2\n\tstrexh %0, %3, %2"
+						: "=&l"(s), "=&l"(t) : "m"(*p), "l"(v)
+						: "memory");
 			}
 			return t;
 		}
@@ -92,35 +90,34 @@ namespace _detail {
 	struct mem_ops<uint32_t> {
 		static uint32_t load(const uint32_t *p) {
 			uint32_t v;
-			asm volatile("ldr %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p) : "memory");
+			asm volatile("ldr %0, %1"
+				: "=l"(v) : "m"(*p) : "memory");
 			return v;
 		}
 
 		static void store(uint32_t *p, uint32_t v) {
-			asm volatile("str %[value], [%[src]]"
-				: : [value] "r"(v), [src] "r"(p) : "memory");
+			asm volatile("str %0, %1"
+				: : "l"(v), "m"(*p) : "memory");
 		}
 
 		static uint32_t load_relaxed(const uint32_t *p) {
 			uint32_t v;
-			asm volatile("ldr %[value], [%[src]]"
-				: [value] "=r"(v) : [src] "r"(p));
+			asm volatile("ldr %0, %1"
+				: "=l"(v) : "m"(*p));
 			return v;
 		}
 
 		static void store_relaxed(uint32_t *p, uint32_t v) {
-			asm volatile("str %[value], [%[src]]"
-				: : [value] "r"(v), [src] "r"(p));
+			asm volatile("str %0, %1"
+				: : "l"(v), "m"(*p));
 		}
 
 		uint32_t atomic_exchange(uint32_t *p, uint32_t v) {
 			uint32_t t, s = 1;
 			while (s) {
-				asm volatile("ldrex %[value], [%[src]]"
-					: [value] "=r"(t) : [src] "r"(p) : "memory");
-				asm volatile("strex %[status], %[value], [%[dest]]"
-					: [status] "=r"(s) : [value] "r"(v), [dest] "r"(p) : "memory");
+				asm volatile("ldrex %1, %2\n\tstrex %0, %3, %2"
+						: "=&l"(s), "=&l"(t) : "m"(*p), "l"(v)
+						: "memory");
 			}
 			return t;
 		}
