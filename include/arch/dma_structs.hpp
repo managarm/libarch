@@ -201,7 +201,6 @@ struct dma_object {
 		if(_pool) {
 			p = _pool->allocate(sizeof(T), 1, alignof(T));
 		}else{
-			assert(alignof(T) <= alignof(max_align_t));
 			p = operator new(sizeof(T));
 		}
 		_data = new (p) T{std::forward<Args>(args)...};
@@ -326,7 +325,6 @@ struct dma_array {
 		if(_pool) {
 			p = _pool->allocate(sizeof(T), _size, alignof(T));
 		}else{
-			assert(alignof(T) <= alignof(max_align_t));
 			// TODO: Check for overflow.
 			p = operator new(sizeof(T) * _size);
 		}
