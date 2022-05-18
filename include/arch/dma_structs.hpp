@@ -201,8 +201,7 @@ struct dma_object {
 		if(_pool) {
 			p = _pool->allocate(sizeof(T), 1, alignof(T));
 		}else{
-			assert(alignof(T) <= alignof(max_align_t));
-			p = operator new(sizeof(T));
+			p = operator new(sizeof(T), std::align_val_t(alignof(T)));
 		}
 		_data = new (p) T{std::forward<Args>(args)...};
 	}
@@ -213,7 +212,7 @@ struct dma_object {
 		if(_pool) {
 			_pool->deallocate(_data, sizeof(T), 1, alignof(T));
 		}else{
-			operator delete(_data, sizeof(T));
+			operator delete(_data, sizeof(T), std::align_val_t(alignof(T)));
 		}
 	}
 
@@ -326,9 +325,8 @@ struct dma_array {
 		if(_pool) {
 			p = _pool->allocate(sizeof(T), _size, alignof(T));
 		}else{
-			assert(alignof(T) <= alignof(max_align_t));
 			// TODO: Check for overflow.
-			p = operator new(sizeof(T) * _size);
+			p = operator new(sizeof(T) * _size, std::align_val_t(alignof(T)));
 		}
 		_data = new (p) T[_size];
 	}
@@ -342,7 +340,7 @@ struct dma_array {
 			_pool->deallocate(_data, sizeof(T), _size, alignof(T));
 		}else{
 			// TODO: Check for overflow.
-			operator delete(_data, sizeof(T) * _size);
+			operator delete(_data, sizeof(T) * _size, std::align_val_t(alignof(T)));
 		}
 	}
 
