@@ -8,7 +8,11 @@ if host_machine.system() == 'managarm'
 			add_project_arguments('-fsized-deallocation', language: 'cpp')
 		endif
 
-		frigg_dep = dependency('frigg', fallback: ['frigg', 'frigg_dep'])
+		frigg_dep = dependency(
+			'frigg',
+			default_options: 'frigg_no_install=true',
+			fallback: ['frigg', 'frigg_dep']
+		)
 
 		libarch_lib = shared_library('arch', 'src/dma_pool.cpp',
 			cpp_args: ['-std=c++20'],
