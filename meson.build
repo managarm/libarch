@@ -26,10 +26,8 @@ if host_machine.system() == 'managarm'
 	else
 		libarch_dep = declare_dependency(include_directories: libarch_inc)
 	endif
-elif host_machine.system() == 'bare'
-	libarch_dep = declare_dependency(include_directories: libarch_inc)
 else
-	error('Unknown OS')
+	libarch_dep = declare_dependency(include_directories: libarch_inc)
 endif
 
 if get_option('install_headers')
