@@ -14,10 +14,12 @@ if host_machine.system() == 'managarm'
 			fallback: ['frigg', 'frigg_dep']
 		)
 
+		helix_dep = subproject('hel').get_variable('hel_dep')
+
 		libarch_lib = shared_library('arch', 'src/dma_pool.cpp',
 			cpp_args: ['-std=c++20'],
-			dependencies: frigg_dep,
-			include_directories: [libarch_inc, 'subprojects/managarm/hel/include'],
+			dependencies: [ frigg_dep, helix_dep ],
+			include_directories: [ libarch_inc ],
 			install: true)
 
 		libarch_dep = declare_dependency(
