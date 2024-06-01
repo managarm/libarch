@@ -1,9 +1,11 @@
-project('libarch', 'cpp', default_options: ['cpp_std=c++20'])
+project('libarch', default_options: ['cpp_std=c++20'])
 
 libarch_inc = include_directories('include/')
 
 if host_machine.system() == 'managarm'
 	if not get_option('header_only')
+		add_languages('cpp')
+
 		if meson.get_compiler('cpp').get_id() == 'clang'
 			add_project_arguments('-fsized-deallocation', language: 'cpp')
 		endif
