@@ -114,6 +114,10 @@ struct bit_value {
 		return *this;
 	}
 
+	bit_value operator~ () const {
+		return bit_value(~_bits);
+	}
+
 private:
 	B _bits;
 };
