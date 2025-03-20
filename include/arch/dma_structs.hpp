@@ -260,7 +260,7 @@ struct dma_small_object {
 		if(_pool) {
 			p = _pool->allocate(sizeof(T), 1, alignof(T));
 		}else{
-			p = &_embedded;
+			p = _embedded;
 		}
 		_data = new (p) T{std::forward<Args>(args)...};
 	}
@@ -299,7 +299,7 @@ struct dma_small_object {
 private:
 	dma_pool *_pool;
 	T *_data;
-	std::aligned_storage_t<sizeof(T), alignof(T)> _embedded;
+	alignas(alignof(T)) std::byte _embedded[sizeof(T)];
 };
 
 template<typename T>
