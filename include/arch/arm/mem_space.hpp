@@ -151,6 +151,20 @@ namespace _detail {
 			return static_cast<typename RT::rep_type>(b);
 		}
 
+		template<typename RT>
+		void store(RT r, ptrdiff_t offset, typename RT::rep_type value) const {
+			auto p = reinterpret_cast<typename RT::bits_type *>(_base + r.offset() + offset);
+			auto v = static_cast<typename RT::bits_type>(value);
+			mem_ops<typename RT::bits_type>::store(p, v);
+		}
+
+		template<typename RT>
+		typename RT::rep_type load(RT r, ptrdiff_t offset) const {
+			auto p = reinterpret_cast<const typename RT::bits_type *>(_base + r.offset() + offset);
+			auto b = mem_ops<typename RT::bits_type>::load(p);
+			return static_cast<typename RT::rep_type>(b);
+		}
+
 	private:
 		uintptr_t _base;
 	};
