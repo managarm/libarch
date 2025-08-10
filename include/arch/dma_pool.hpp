@@ -1,14 +1,16 @@
-#ifndef LIBARCH_DMA_POOL_HPP
-#define LIBARCH_DMA_POOL_HPP
+#pragma once
 
-#if defined(__managarm__)
-#	include <arch/os-managarm/dma_pool.hpp>
-#else
-#	error Unsupported architecture
-#endif
+#include <concepts>
+
+#include <arch/os/dma_pool.hpp>
 
 namespace arch {
-	using os::contiguous_pool;
-}
 
-#endif // LIBARCH_DMA_POOL_HPP
+static_assert(
+	requires(contiguous_pool *self, size_t size, size_t count, size_t align, void *pointer) {
+		{ self->allocate(size, count, align) } -> std::same_as<void *>;
+		{ self->deallocate(pointer, size, count, align) } -> std::same_as<void>;
+	}
+);
+
+} // namespace arch
