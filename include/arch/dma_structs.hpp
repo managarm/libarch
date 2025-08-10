@@ -3,7 +3,8 @@
 
 #include <assert.h>
 #include <cstddef>
-#include <iostream>
+#include <new>
+#include <utility>
 
 namespace arch {
 
@@ -220,7 +221,7 @@ struct dma_object {
 		swap(*this, other);
 		return *this;
 	}
-	
+
 	operator dma_object_view<T> () {
 		return dma_object_view<T>{_pool, _data};
 	}
@@ -275,7 +276,7 @@ struct dma_small_object {
 	}
 
 	dma_small_object &operator= (const dma_small_object &) = delete;
-	
+
 	operator dma_object_view<T> () {
 		return dma_object_view<T>{_pool, _data};
 	}
@@ -348,7 +349,7 @@ struct dma_array {
 		swap(*this, other);
 		return *this;
 	}
-	
+
 	operator dma_array_view<T> () {
 		return dma_array_view<T>{_pool, _data, _size};
 	}
@@ -364,7 +365,7 @@ struct dma_array {
 	T &operator[] (size_t n) {
 		return _data[n];
 	}
-	
+
 	dma_buffer_view view_buffer() {
 		return dma_buffer_view{_pool, _data, sizeof(T) * _size};
 	}
