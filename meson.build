@@ -42,12 +42,15 @@ if get_option('install_headers')
 		'include/arch/register.hpp',
 		'include/arch/variable.hpp',
 		'include/arch/bit.hpp',
+		'include/arch/cache.hpp',
+		'include/arch/barrier.hpp',
 		subdir: 'arch/')
 	install_headers(
 		'include/arch/os-managarm/dma_pool.hpp',
 		subdir: 'arch/os-managarm/')
 	if host_machine.cpu_family() == 'x86' or host_machine.cpu_family() == 'x86_64'
 		install_headers(
+			'include/arch/x86/cache.hpp',
 			'include/arch/x86/mem_space.hpp',
 			'include/arch/x86/io_space.hpp',
 			subdir: 'arch/x86/')
@@ -57,6 +60,7 @@ if get_option('install_headers')
 			subdir: 'arch/arm/')
 	elif host_machine.cpu_family() == 'aarch64'
 		install_headers(
+			'include/arch/aarch64/cache.hpp',
 			'include/arch/aarch64/mem_space.hpp',
 			subdir: 'arch/aarch64/')
 	else
