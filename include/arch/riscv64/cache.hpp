@@ -18,7 +18,7 @@ inline size_t dcache_line_size() {
 inline void cache_clean(uintptr_t addr, size_t size) {
 	auto dsz = dcache_line_size();
 	for (auto cur = addr & ~(dsz - 1); cur < addr + size; cur += dsz) {
-		asm volatile ("cbo.clean %0" :: "r"(cur) : "memory");
+		asm volatile ("cbo.clean 0(%0)" :: "r"(cur) : "memory");
 	}
 	asm volatile ("fence w, iorw" ::: "memory");
 }
@@ -27,7 +27,7 @@ inline void cache_clean(uintptr_t addr, size_t size) {
 inline void cache_flush(uintptr_t addr, size_t size) {
 	auto dsz = dcache_line_size();
 	for (auto cur = addr & ~(dsz - 1); cur < addr + size; cur += dsz) {
-		asm volatile ("cbo.flush %0" :: "r"(cur) : "memory");
+		asm volatile ("cbo.flush 0(%0)" :: "r"(cur) : "memory");
 	}
 	asm volatile ("fence w, iorw" ::: "memory");
 }
