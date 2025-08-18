@@ -15,7 +15,7 @@ inline size_t dcache_line_size() {
 }
 
 // Clean cache lines.
-inline void cache_clean(uintptr_t addr, size_t size) {
+[[gnu::target("arch=+zicbom")]] inline void cache_clean(uintptr_t addr, size_t size) {
 	auto dsz = dcache_line_size();
 	for (auto cur = addr & ~(dsz - 1); cur < addr + size; cur += dsz) {
 		asm volatile ("cbo.clean 0(%0)" :: "r"(cur) : "memory");
@@ -24,7 +24,7 @@ inline void cache_clean(uintptr_t addr, size_t size) {
 }
 
 // Flush cache lines.
-inline void cache_flush(uintptr_t addr, size_t size) {
+[[gnu::target("arch=+zicbom")]] inline void cache_flush(uintptr_t addr, size_t size) {
 	auto dsz = dcache_line_size();
 	for (auto cur = addr & ~(dsz - 1); cur < addr + size; cur += dsz) {
 		asm volatile ("cbo.flush 0(%0)" :: "r"(cur) : "memory");
