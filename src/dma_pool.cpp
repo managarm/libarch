@@ -12,7 +12,7 @@ uintptr_t contiguous_policy::map(size_t length) {
 
 	// For now, just allocate everything in 32-bit physical memory.
 	HelAllocRestrictions restrictions;
-	restrictions.addressBits = 32;
+	restrictions.addressBits = _options.addressBits;
 
 	HelHandle memory;
 	void *actual_ptr;
@@ -27,8 +27,8 @@ void contiguous_policy::unmap(uintptr_t address, size_t length) {
 	HEL_CHECK(helUnmapMemory(kHelNullHandle, (void *)address, length));
 }
 
-contiguous_pool::contiguous_pool()
-: _slab{_policy} { }
+contiguous_pool::contiguous_pool(contiguous_pool_options options)
+: _policy{options}, _slab{_policy} { }
 
 void *contiguous_pool::allocate(size_t size, size_t count, size_t align) {
 	// We do not have to pay attention to the alignment parameter
