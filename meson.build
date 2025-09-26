@@ -37,6 +37,7 @@ if get_option('install_headers')
 		subdir: 'arch/aarch64/')
 
 	install_headers(
+		'include/arch/riscv64/cache.hpp',
 		'include/arch/riscv64/mem_space.hpp',
 		subdir: 'arch/riscv64/')
 endif
