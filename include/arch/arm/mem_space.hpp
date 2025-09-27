@@ -123,6 +123,14 @@ namespace _detail {
 	};
 }
 
+// TODO: This is not correct.
+template<typename B>
+using io_mem_ops = mem_ops<B>;
+
+// TODO: This is not correct.
+template<typename B>
+using main_mem_ops = mem_ops<B>;
+
 using _detail::mem_ops;
 
 } // namespace arch
