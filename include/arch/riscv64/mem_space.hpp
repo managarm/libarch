@@ -91,6 +91,36 @@ namespace _detail {
 	};
 }
 
+template<typename B>
+struct io_mem_ops {
+    static B load(const B *p) {
+        asm volatile("fence r, i" ::: "memory");
+        auto v = _detail::mem_ops<B>::load_relaxed(p);
+        asm volatile("fence i, rw" ::: "memory");
+        return v;
+    }
+
+    static void store(B *p, B v) {
+        asm volatile("fence rw, o" ::: "memory");
+        _detail::mem_ops<B>::store_relaxed(p, v);
+        asm volatile("fence o, w" ::: "memory");
+    }
+};
+
+template<typename B>
+struct main_mem_ops {
+    static B load(const B *p) {
+        auto v = _detail::mem_ops<B>::load_relaxed(p);
+        asm volatile("fence r, rw" ::: "memory");
+        return v;
+    }
+
+    static void store(B *p, B v) {
+        asm volatile("fence rw, w" ::: "memory");
+        _detail::mem_ops<B>::store_relaxed(p, v);
+    }
+};
+
 using _detail::mem_ops;
 
 } // namespace arch

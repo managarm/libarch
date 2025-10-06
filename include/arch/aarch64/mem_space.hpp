@@ -168,6 +168,34 @@ namespace _detail {
 	};
 }
 
+template<typename B>
+struct io_mem_ops {
+    static B load(const B *p) {
+        auto v = _detail::mem_ops<B>::load_relaxed(p);
+        asm volatile("dmb oshld" ::: "memory");
+        return v;
+    }
+
+    static void store(B *p, B v) {
+        asm volatile("dmb osh" ::: "memory");
+        _detail::mem_ops<B>::store_relaxed(p, v);
+    }
+};
+
+template<typename B>
+struct main_mem_ops {
+    static B load(const B *p) {
+        auto v = _detail::mem_ops<B>::load_relaxed(p);
+        asm volatile("dmb ishld" ::: "memory");
+        return v;
+    }
+
+    static void store(B *p, B v) {
+        asm volatile("dmb ish" ::: "memory");
+        _detail::mem_ops<B>::store_relaxed(p, v);
+    }
+};
+
 using _detail::mem_ops;
 
 } // namespace arch

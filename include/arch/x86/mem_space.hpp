@@ -93,6 +93,14 @@ namespace _detail {
 	};
 }
 
+// x86 has TSO which is strong enough to not require barriers anywhere.
+
+template<typename B>
+using io_mem_ops = _detail::mem_ops<B>;
+
+template<typename B>
+using main_mem_ops = _detail::mem_ops<B>;
+
 using _detail::mem_ops;
 
 } // namespace arch

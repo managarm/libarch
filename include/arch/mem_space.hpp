@@ -14,31 +14,34 @@
 
 namespace arch {
 
-struct mem_space {
-	constexpr mem_space()
+namespace _details {
+
+template<template<typename> typename Ops>
+struct base_mem_space {
+	constexpr base_mem_space()
 	: _base(0) { }
 
-	constexpr mem_space(uintptr_t base)
+	constexpr base_mem_space(uintptr_t base)
 	: _base(base) { }
 
-	mem_space(void *base)
+	base_mem_space(void *base)
 	: _base(reinterpret_cast<uintptr_t>(base)) { }
 
-	mem_space subspace(ptrdiff_t offset) const {
-		return mem_space(reinterpret_cast<void *>(_base + offset));
+	base_mem_space subspace(ptrdiff_t offset) const {
+		return base_mem_space(reinterpret_cast<void *>(_base + offset));
 	}
 
 	template<typename RT>
 	void store(RT r, typename RT::rep_type value) const {
 		auto p = reinterpret_cast<typename RT::bits_type *>(_base + r.offset());
 		auto v = static_cast<typename RT::bits_type>(value);
-		mem_ops<typename RT::bits_type>::store(p, v);
+		Ops<typename RT::bits_type>::store(p, v);
 	}
 
 	template<typename RT>
 	typename RT::rep_type load(RT r) const {
 		auto p = reinterpret_cast<const typename RT::bits_type *>(_base + r.offset());
-		auto b = mem_ops<typename RT::bits_type>::load(p);
+		auto b = Ops<typename RT::bits_type>::load(p);
 		return static_cast<typename RT::rep_type>(b);
 	}
 
@@ -46,19 +49,25 @@ struct mem_space {
 	void store_relaxed(RT r, typename RT::rep_type value) const {
 		auto p = reinterpret_cast<typename RT::bits_type *>(_base + r.offset());
 		auto v = static_cast<typename RT::bits_type>(value);
-		mem_ops<typename RT::bits_type>::store_relaxed(p, v);
+		Ops<typename RT::bits_type>::store_relaxed(p, v);
 	}
 
 	template<typename RT>
 	typename RT::rep_type load_relaxed(RT r) const {
 		auto p = reinterpret_cast<const typename RT::bits_type *>(_base + r.offset());
-		auto b = mem_ops<typename RT::bits_type>::load_relaxed(p);
+		auto b = Ops<typename RT::bits_type>::load_relaxed(p);
 		return static_cast<typename RT::rep_type>(b);
 	}
 
 private:
 	uintptr_t _base;
 };
+
+} // namespace _details
+
+using io_mem_space = _details::base_mem_space<io_mem_ops>;
+using main_mem_space = _details::base_mem_space<main_mem_ops>;
+using mem_space = _details::base_mem_space<mem_ops>;
 
 static constexpr mem_space global_mem{};
 
