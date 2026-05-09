@@ -159,6 +159,10 @@ struct dma_buffer_view {
 		return static_cast<std::byte *>(data());
 	}
 
+	dma_ptr get_dma_ptr() const {
+		return _ptr;
+	}
+
 	dma_buffer_view subview(size_t offset, size_t chunk) const {
 		assert(offset <= _size);
 		assert(offset + chunk <= _size);
@@ -194,6 +198,10 @@ struct dma_object_view {
 		return data();
 	}
 
+	dma_ptr get_dma_ptr() const {
+		return _ptr;
+	}
+
 private:
 	dma_ptr _ptr;
 };
@@ -216,6 +224,10 @@ struct dma_array_view {
 
 	T &operator[] (size_t n) const {
 		return data()[n];
+	}
+
+	dma_ptr get_dma_ptr() const {
+		return _ptr;
 	}
 
 private:
@@ -287,6 +299,10 @@ struct dma_buffer {
 		return dma_buffer_view{_ptr.offset_by(offset), _size - offset};
 	}
 
+	dma_ptr get_dma_ptr() const {
+		return _ptr;
+	}
+
 private:
 	dma_ptr _ptr;
 	size_t _size;
@@ -351,6 +367,10 @@ struct dma_object {
 
 	dma_buffer_view view_buffer() {
 		return dma_buffer_view{_ptr, sizeof(T)};
+	}
+
+	dma_ptr get_dma_ptr() const {
+		return _ptr;
 	}
 
 private:
@@ -421,6 +441,10 @@ struct dma_array {
 
 	dma_buffer_view view_buffer() {
 		return dma_buffer_view{_ptr, sizeof(T) * _size};
+	}
+
+	dma_ptr get_dma_ptr() const {
+		return _ptr;
 	}
 
 private:
