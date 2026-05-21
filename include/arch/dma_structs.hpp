@@ -136,6 +136,16 @@ struct dma_pool {
 // View classes.
 // ----------------------------------------------------------------------------
 
+template <typename View>
+concept dma_view = requires(View v) {
+	{ v.data() };
+	{ v.byte_data() } -> std::same_as<std::byte *>;
+	{ v.size() } -> std::same_as<size_t>;
+	{ v.get_dma_ptr() } -> std::same_as<dma_ptr>;
+
+	requires std::is_pointer_v<decltype(v.data())>;
+};
+
 struct dma_buffer_view {
 	dma_buffer_view()
 	: _size{0} { }
@@ -190,6 +200,14 @@ struct dma_object_view {
 		return _ptr.get_raw_ptr<T>();
 	}
 
+	std::byte *byte_data() const {
+		return _ptr.get_raw_ptr<std::byte>();
+	}
+
+	constexpr size_t size() const {
+		return sizeof(T);
+	}
+
 	T &operator* () const {
 		return *data();
 	}
@@ -224,6 +242,10 @@ struct dma_array_view {
 
 	T *data() const {
 		return _ptr.get_raw_ptr<T>();
+	}
+
+	std::byte *byte_data() const {
+		return _ptr.get_raw_ptr<std::byte>();
 	}
 
 	T &operator[] (size_t n) const {
@@ -287,12 +309,16 @@ struct dma_buffer {
 		return dma_buffer_view{_ptr, _size};
 	}
 
-	size_t size() {
+	size_t size() const {
 		return _size;
 	}
 
 	void *data() const {
 		return _ptr.get_raw_ptr();
+	}
+
+	std::byte *byte_data() {
+		return _ptr.get_raw_ptr<std::byte>();
 	}
 
 	dma_buffer_view subview(size_t offset, size_t chunk) {
@@ -357,8 +383,16 @@ struct dma_object {
 		return dma_object_view<T>{_ptr};
 	}
 
+	constexpr size_t size() const {
+		return sizeof(T);
+	}
+
 	T *data() {
 		return _ptr.get_raw_ptr<T>();
+	}
+
+	std::byte *byte_data() {
+		return _ptr.get_raw_ptr<std::byte>();
 	}
 
 	T &operator* () {
@@ -431,12 +465,16 @@ struct dma_array {
 		return dma_array_view<T>{_ptr, _size};
 	}
 
-	size_t size() {
+	size_t size() const {
 		return _size;
 	}
 
 	T *data() {
 		return _ptr.get_raw_ptr<T>();
+	}
+
+	std::byte *byte_data() {
+		return _ptr.get_raw_ptr<std::byte>();
 	}
 
 	T &operator[] (size_t n) {
