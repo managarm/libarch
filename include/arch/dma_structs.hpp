@@ -202,6 +202,10 @@ struct dma_object_view {
 		return _ptr;
 	}
 
+	dma_buffer_view view_buffer() const {
+		return dma_buffer_view{_ptr, sizeof(T)};
+	}
+
 private:
 	dma_ptr _ptr;
 };
@@ -437,6 +441,11 @@ struct dma_array {
 
 	T &operator[] (size_t n) {
 		return data()[n];
+	}
+
+	arch::dma_object_view<T> object_view(size_t n) {
+		assert(n < _size);
+		return arch::dma_object_view<T>{_ptr.offset_by(n * sizeof(T))};
 	}
 
 	dma_buffer_view view_buffer() {
