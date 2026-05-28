@@ -30,6 +30,12 @@ struct dma_region {
 		return pool_;
 	}
 
+	// If true, then all offsets in this region correspond to non-null pointers.
+	// Otherwise, only offset zero is allowed and it corresponds to a null pointer.
+	bool is_valid() const {
+		return valid;
+	}
+
 	bool has_va() const {
 		return static_cast<bool>(base_va);
 	}
@@ -46,6 +52,8 @@ struct dma_region {
 	}
 
 protected:
+	// Whether this region is valid. Only null_dma_region is invalid.
+	bool valid{true};
 	// Virtual address where the region is mapped (if it is mapped).
 	std::optional<uintptr_t> base_va;
 
@@ -53,7 +61,17 @@ private:
 	dma_pool *pool_;
 };
 
-// dma_region that is used if nullptr is passed as dma_pool.
+// dma_region that corresponds to a nullptr (i.e., that returns false from is_valid()).
+struct null_dma_region_impl : dma_region {
+	constexpr null_dma_region_impl()
+	: dma_region{nullptr} {
+		valid = false;
+		// Set base_va to zero such that get_raw_ptr() works.
+		base_va = 0;
+	}
+};
+
+// dma_region for pointers constructed from the host virtual address space.
 struct host_dma_region_impl : dma_region {
 	constexpr host_dma_region_impl()
 	: dma_region{nullptr} {
@@ -61,6 +79,7 @@ struct host_dma_region_impl : dma_region {
 	}
 };
 
+inline constinit null_dma_region_impl null_dma_region;
 inline constinit host_dma_region_impl host_dma_region;
 
 // Fat pointer that points to a single DMA buffer/object/array inside a dma_region.
@@ -71,8 +90,7 @@ struct dma_ptr {
 	: _region{region}, _offset{offset} { }
 
 	explicit operator bool () {
-		// Null pointers (i.e., default constructed dma_ptr) are always mapped.
-		return _region->has_va() && !get_raw_ptr();
+		return _region->is_valid();
 	}
 
 	dma_pool *pool() {
@@ -97,11 +115,13 @@ struct dma_ptr {
 	}
 
 private:
-	dma_region *_region{&host_dma_region};
+	dma_region *_region{&null_dma_region};
 	size_t _offset{0};
 };
 
 inline dma_ptr make_host_dma_ptr(void *p) {
+	if (!p)
+		return {};
 	return {&host_dma_region, reinterpret_cast<uintptr_t>(p)};
 }
 
