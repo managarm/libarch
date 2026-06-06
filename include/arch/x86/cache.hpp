@@ -17,7 +17,7 @@ inline size_t dcache_line_size() {
 inline void cache_clflush(uintptr_t addr, size_t size) {
 	auto dsz = dcache_line_size();
 	for (auto cur = addr & ~(dsz - 1); cur < addr + size; cur += dsz) {
-		asm volatile ("clflush (%0)" :: "r"(cur) : "memory");
+		asm volatile ("clflush {(%0)|[%0]}" :: "r"(cur) : "memory");
 	}
 }
 

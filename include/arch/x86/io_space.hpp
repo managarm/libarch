@@ -15,11 +15,11 @@ namespace _detail {
 	template<>
 	struct io_ops<uint8_t> {
 		static void store(uint16_t addr, uint8_t v) {
-			asm volatile ("outb %0, %1" : : "a"(v), "d"(addr) : "memory");
+			asm volatile ("out{b %0, %1| %1, %0}" : : "a"(v), "d"(addr) : "memory");
 		}
 		static uint8_t load(uint16_t addr) {
 			uint8_t v;
-			asm volatile ("inb %1, %0" : "=a"(v) : "d"(addr) : "memory");
+			asm volatile ("in{b %1, %0| %0, %1}" : "=a"(v) : "d"(addr) : "memory");
 			return v;
 		}
 
@@ -36,11 +36,11 @@ namespace _detail {
 	template<>
 	struct io_ops<uint16_t> {
 		static void store(uint16_t addr, uint16_t v) {
-			asm volatile ("outw %0, %1" : : "a"(v), "d"(addr) : "memory");
+			asm volatile ("out{w %0, %1| %1, %0}" : : "a"(v), "d"(addr) : "memory");
 		}
 		static uint16_t load(uint16_t addr) {
 			uint16_t v;
-			asm volatile ("inw %1, %0" : "=a"(v) : "d"(addr) : "memory");
+			asm volatile ("in{w %1, %0| %0, %1}" : "=a"(v) : "d"(addr) : "memory");
 			return v;
 		}
 
@@ -57,11 +57,11 @@ namespace _detail {
 	template<>
 	struct io_ops<uint32_t> {
 		static void store(uint16_t addr, uint32_t v) {
-			asm volatile ("outl %0, %1" : : "a"(v), "d"(addr) : "memory");
+			asm volatile ("out{l %0, %1| %1, %0}" : : "a"(v), "d"(addr) : "memory");
 		}
 		static uint32_t load(uint16_t addr) {
 			uint32_t v;
-			asm volatile ("inl %1, %0" : "=a"(v) : "d"(addr) : "memory");
+			asm volatile ("in{l %1, %0| %0, %1}" : "=a"(v) : "d"(addr) : "memory");
 			return v;
 		}
 	};
