@@ -1,9 +1,10 @@
 #pragma once
 
 #if defined(__i386__) || defined(__x86_64__)
-#	include<arch/x86/io_space.hpp>
+#	include <arch/x86/io_space.hpp>
 #else
 	#include <stdint.h>
+	#include <stddef.h>
 
 	// TODO: If we support MMIO-redirected PIO in the future,
 	//	   we may want to provide a proper implementation here.
