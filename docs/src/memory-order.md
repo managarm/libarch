@@ -111,6 +111,7 @@ may be moved out of (or into) mutexes if no extra barriers are used.
 that are accessed both from devices and from CPUs.
 For example, `arch::main_mem_space` is appropriate for descriptor
 rings in main memory that are accessed by devices.
+`arch::main_mem_space` semantics also apply to `arch::bit_variable` and `arch::scalar_variable`.
 **If `arch::main_mem_space` is used with memory other than main memory,
 (e.g., device memory) the ordering guarantees may be weaker than stated below.**
 

@@ -18,15 +18,15 @@ struct basic_variable {
 	: _embedded{static_cast<B>(r)} { }
 
 	R load() {
-		return static_cast<R>(mem_ops<B>::load(&_embedded));
+		return static_cast<R>(main_mem_ops<B>::load(&_embedded));
 	}
 
 	void store(R r) {
-		mem_ops<B>::store(&_embedded, static_cast<B>(r));
+		main_mem_ops<B>::store(&_embedded, static_cast<B>(r));
 	}
 
 	R atomic_exchange(R r) {
-		return static_cast<R>(mem_ops<B>::atomic_exchange(&_embedded, static_cast<B>(r)));
+		return static_cast<R>(main_mem_ops<B>::atomic_exchange(&_embedded, static_cast<B>(r)));
 	}
 
 private:
