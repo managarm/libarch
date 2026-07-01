@@ -8,23 +8,14 @@
 namespace arch {
 
 namespace _detail {
+	// Raw accesses without any ordering guarantees (not even a compiler barrier
+	// beyond the volatile access itself). These are the building blocks that the
+	// ordered *_mem_ops below combine with the appropriate architectural barriers.
 	template<typename B>
-	struct mem_ops;
+	struct relaxed_mem_ops;
 
 	template<>
-	struct mem_ops<uint8_t> {
-		static uint8_t load(const uint8_t *p) {
-			uint8_t v;
-			asm volatile("ldrb %0, %1"
-				: "=l"(v) : "m"(*p) : "memory");
-			return v;
-		}
-
-		static void store(uint8_t *p, uint8_t v) {
-			asm volatile("strb %0, %1"
-				: : "l"(v), "m"(*p) : "memory");
-		}
-
+	struct relaxed_mem_ops<uint8_t> {
 		static uint8_t load_relaxed(const uint8_t *p) {
 			uint8_t v;
 			asm volatile("ldrb %0, %1"
@@ -49,19 +40,7 @@ namespace _detail {
 	};
 
 	template<>
-	struct mem_ops<uint16_t> {
-		static uint16_t load(const uint16_t *p) {
-			uint16_t v;
-			asm volatile("ldrh %0, %1"
-				: "=l"(v) : "m"(*p) : "memory");
-			return v;
-		}
-
-		static void store(uint16_t *p, uint16_t v) {
-			asm volatile("strh %0, %1"
-				: : "l"(v), "m"(*p) : "memory");
-		}
-
+	struct relaxed_mem_ops<uint16_t> {
 		static uint16_t load_relaxed(const uint16_t *p) {
 			uint16_t v;
 			asm volatile("ldrh %0, %1"
@@ -86,19 +65,7 @@ namespace _detail {
 	};
 
 	template<>
-	struct mem_ops<uint32_t> {
-		static uint32_t load(const uint32_t *p) {
-			uint32_t v;
-			asm volatile("ldr %0, %1"
-				: "=l"(v) : "m"(*p) : "memory");
-			return v;
-		}
-
-		static void store(uint32_t *p, uint32_t v) {
-			asm volatile("str %0, %1"
-				: : "l"(v), "m"(*p) : "memory");
-		}
-
+	struct relaxed_mem_ops<uint32_t> {
 		static uint32_t load_relaxed(const uint32_t *p) {
 			uint32_t v;
 			asm volatile("ldr %0, %1"
@@ -123,15 +90,40 @@ namespace _detail {
 	};
 }
 
-// TODO: This is not correct.
+// TODO: These only issue a compiler barrier; real dmb barriers are still required.
 template<typename B>
-using io_mem_ops = mem_ops<B>;
+struct io_mem_ops {
+	static B load(const B *p) {
+		auto v = _detail::relaxed_mem_ops<B>::load_relaxed(p);
+		asm volatile("" ::: "memory");
+		return v;
+	}
+
+	static void store(B *p, B v) {
+		asm volatile("" ::: "memory");
+		_detail::relaxed_mem_ops<B>::store_relaxed(p, v);
+	}
+
+	static B load_relaxed(const B *p) {
+		return _detail::relaxed_mem_ops<B>::load_relaxed(p);
+	}
+
+	static void store_relaxed(B *p, B v) {
+		_detail::relaxed_mem_ops<B>::store_relaxed(p, v);
+	}
+};
 
 // TODO: This is not correct.
 template<typename B>
-using main_mem_ops = mem_ops<B>;
+using main_mem_ops = io_mem_ops<B>;
 
-using _detail::mem_ops;
+// TODO: This is not correct.
+template<typename B>
+struct mem_ops : io_mem_ops<B> {
+	static B atomic_exchange(B *p, B v) {
+		return _detail::relaxed_mem_ops<B>::atomic_exchange(p, v);
+	}
+};
 
 } // namespace arch
 
