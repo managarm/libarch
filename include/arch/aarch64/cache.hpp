@@ -11,7 +11,7 @@ inline size_t dcache_line_size() {
 	uint64_t ctr;
 	asm ("mrs %0, ctr_el0" : "=r"(ctr));
 
-	return ((ctr >> 16) & 0b1111) << 4;
+	return size_t{4} << ((ctr >> 16) & 0b1111);
 }
 
 // Clean cache lines by VA to PoC.
