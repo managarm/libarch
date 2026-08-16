@@ -283,22 +283,23 @@ struct dma_buffer {
 		using std::swap;
 		swap(a._ptr, b._ptr);
 		swap(a._size, b._size);
+		swap(a._align, b._align);
 	}
 
 	dma_buffer()
-	: _size{0} { }
+	: _size{0}, _align{1} { }
 
 	dma_buffer(dma_buffer &&other)
 	: dma_buffer() {
 		swap(*this, other);
 	}
 
-	explicit dma_buffer(dma_pool *pool, size_t size)
-	: _size{size} {
+	explicit dma_buffer(dma_pool *pool, size_t size, size_t align = 1)
+	: _size{size}, _align{align} {
 		if(pool) {
-			_ptr = pool->allocate(_size, 1, 1);
+			_ptr = pool->allocate(_size, 1, _align);
 		}else{
-			void *p = operator new(_size);
+			void *p = operator new(_size, std::align_val_t(_align));
 			_ptr = make_host_dma_ptr(p);
 		}
 	}
@@ -307,9 +308,9 @@ struct dma_buffer {
 		if (!_ptr)
 			return;
 		if(_ptr.pool()) {
-			_ptr.pool()->deallocate(_ptr, _size, 1, 1);
+			_ptr.pool()->deallocate(_ptr, _size, 1, _align);
 		}else{
-			operator delete(data(), _size);
+			operator delete(data(), _size, std::align_val_t(_align));
 		}
 	}
 
@@ -353,6 +354,7 @@ struct dma_buffer {
 private:
 	dma_ptr _ptr;
 	size_t _size;
+	size_t _align;
 };
 
 template<typename T>
