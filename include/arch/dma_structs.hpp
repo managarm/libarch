@@ -141,6 +141,7 @@ concept dma_view = requires(View v) {
 	{ v.data() };
 	{ v.byte_data() } -> std::same_as<std::byte *>;
 	{ v.size() } -> std::same_as<size_t>;
+	{ v.size_bytes() } -> std::same_as<size_t>;
 	{ v.get_dma_ptr() } -> std::same_as<dma_ptr>;
 
 	requires std::is_pointer_v<decltype(v.data())>;
@@ -158,6 +159,10 @@ struct dma_buffer_view {
 	: _ptr{make_host_dma_ptr(data)}, _size{size} { }
 
 	size_t size() const {
+		return _size;
+	}
+
+	size_t size_bytes() const {
 		return _size;
 	}
 
@@ -208,6 +213,10 @@ struct dma_object_view {
 		return sizeof(T);
 	}
 
+	constexpr size_t size_bytes() const {
+		return sizeof(T);
+	}
+
 	T &operator* () const {
 		return *data();
 	}
@@ -238,6 +247,10 @@ struct dma_array_view {
 
 	size_t size() const {
 		return _size;
+	}
+
+	size_t size_bytes() const {
+		return sizeof(T) * _size;
 	}
 
 	T *data() const {
@@ -313,6 +326,10 @@ struct dma_buffer {
 		return _size;
 	}
 
+	size_t size_bytes() const {
+		return _size;
+	}
+
 	void *data() const {
 		return _ptr.get_raw_ptr();
 	}
@@ -384,6 +401,10 @@ struct dma_object {
 	}
 
 	constexpr size_t size() const {
+		return sizeof(T);
+	}
+
+	constexpr size_t size_bytes() const {
 		return sizeof(T);
 	}
 
@@ -467,6 +488,10 @@ struct dma_array {
 
 	size_t size() const {
 		return _size;
+	}
+
+	size_t size_bytes() const {
+		return sizeof(T) * _size;
 	}
 
 	T *data() {
