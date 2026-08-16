@@ -357,8 +357,10 @@ private:
 	size_t _align;
 };
 
-template<typename T>
+template<typename T, size_t Align = alignof(T)>
 struct dma_object {
+	static_assert(Align >= alignof(T), "Align must satisfy the alignment of T");
+
 	friend void swap(dma_object &a, dma_object &b) {
 		using std::swap;
 		swap(a._ptr, b._ptr);
@@ -374,9 +376,9 @@ struct dma_object {
 	template<typename... Args>
 	explicit dma_object(dma_pool *pool, Args &&... args) {
 		if(pool) {
-			_ptr = pool->allocate(sizeof(T), 1, alignof(T));
+			_ptr = pool->allocate(sizeof(T), 1, Align);
 		}else{
-			auto p = operator new(sizeof(T), std::align_val_t(alignof(T)));
+			auto p = operator new(sizeof(T), std::align_val_t(Align));
 			_ptr = make_host_dma_ptr(p);
 		}
 		new (_ptr.get_raw_ptr()) T{std::forward<Args>(args)...};
@@ -387,9 +389,9 @@ struct dma_object {
 			return;
 		data()->~T();
 		if(_ptr.pool()) {
-			_ptr.pool()->deallocate(_ptr, sizeof(T), 1, alignof(T));
+			_ptr.pool()->deallocate(_ptr, sizeof(T), 1, Align);
 		}else{
-			operator delete(data(), sizeof(T), std::align_val_t(alignof(T)));
+			operator delete(data(), sizeof(T), std::align_val_t(Align));
 		}
 	}
 
@@ -438,8 +440,10 @@ private:
 	dma_ptr _ptr;
 };
 
-template<typename T>
+template<typename T, size_t Align = alignof(T)>
 struct dma_array {
+	static_assert(Align >= alignof(T), "Align must satisfy the alignment of T");
+
 	friend void swap(dma_array &a, dma_array &b) {
 		using std::swap;
 		swap(a._ptr, b._ptr);
@@ -457,10 +461,10 @@ struct dma_array {
 	explicit dma_array(dma_pool *pool, size_t size)
 	: _size{size} {
 		if(pool) {
-			_ptr = pool->allocate(sizeof(T), _size, alignof(T));
+			_ptr = pool->allocate(sizeof(T), _size, Align);
 		}else{
 			// TODO: Check for overflow.
-			auto p = operator new(sizeof(T) * _size, std::align_val_t(alignof(T)));
+			auto p = operator new(sizeof(T) * _size, std::align_val_t(Align));
 			_ptr = make_host_dma_ptr(p);
 		}
 		new (_ptr.get_raw_ptr()) T[_size];
@@ -472,10 +476,10 @@ struct dma_array {
 		for(size_t i = 0; i < _size; ++i)
 			data()[i].~T();
 		if(_ptr.pool()) {
-			_ptr.pool()->deallocate(_ptr, sizeof(T), _size, alignof(T));
+			_ptr.pool()->deallocate(_ptr, sizeof(T), _size, Align);
 		}else{
 			// TODO: Check for overflow.
-			operator delete(data(), sizeof(T) * _size, std::align_val_t(alignof(T)));
+			operator delete(data(), sizeof(T) * _size, std::align_val_t(Align));
 		}
 	}
 
