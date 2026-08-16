@@ -141,6 +141,7 @@ concept dma_view = requires(View v) {
 	{ v.data() };
 	{ v.byte_data() } -> std::same_as<std::byte *>;
 	{ v.size() } -> std::same_as<size_t>;
+	{ v.size_bytes() } -> std::same_as<size_t>;
 	{ v.get_dma_ptr() } -> std::same_as<dma_ptr>;
 
 	requires std::is_pointer_v<decltype(v.data())>;
@@ -158,6 +159,10 @@ struct dma_buffer_view {
 	: _ptr{make_host_dma_ptr(data)}, _size{size} { }
 
 	size_t size() const {
+		return _size;
+	}
+
+	size_t size_bytes() const {
 		return _size;
 	}
 
@@ -208,6 +213,10 @@ struct dma_object_view {
 		return sizeof(T);
 	}
 
+	constexpr size_t size_bytes() const {
+		return sizeof(T);
+	}
+
 	T &operator* () const {
 		return *data();
 	}
@@ -240,6 +249,10 @@ struct dma_array_view {
 		return _size;
 	}
 
+	size_t size_bytes() const {
+		return sizeof(T) * _size;
+	}
+
 	T *data() const {
 		return _ptr.get_raw_ptr<T>();
 	}
@@ -270,22 +283,23 @@ struct dma_buffer {
 		using std::swap;
 		swap(a._ptr, b._ptr);
 		swap(a._size, b._size);
+		swap(a._align, b._align);
 	}
 
 	dma_buffer()
-	: _size{0} { }
+	: _size{0}, _align{1} { }
 
 	dma_buffer(dma_buffer &&other)
 	: dma_buffer() {
 		swap(*this, other);
 	}
 
-	explicit dma_buffer(dma_pool *pool, size_t size)
-	: _size{size} {
+	explicit dma_buffer(dma_pool *pool, size_t size, size_t align = 1)
+	: _size{size}, _align{align} {
 		if(pool) {
-			_ptr = pool->allocate(_size, 1, 1);
+			_ptr = pool->allocate(_size, 1, _align);
 		}else{
-			void *p = operator new(_size);
+			void *p = operator new(_size, std::align_val_t(_align));
 			_ptr = make_host_dma_ptr(p);
 		}
 	}
@@ -294,9 +308,9 @@ struct dma_buffer {
 		if (!_ptr)
 			return;
 		if(_ptr.pool()) {
-			_ptr.pool()->deallocate(_ptr, _size, 1, 1);
+			_ptr.pool()->deallocate(_ptr, _size, 1, _align);
 		}else{
-			operator delete(data(), _size);
+			operator delete(data(), _size, std::align_val_t(_align));
 		}
 	}
 
@@ -310,6 +324,10 @@ struct dma_buffer {
 	}
 
 	size_t size() const {
+		return _size;
+	}
+
+	size_t size_bytes() const {
 		return _size;
 	}
 
@@ -336,10 +354,13 @@ struct dma_buffer {
 private:
 	dma_ptr _ptr;
 	size_t _size;
+	size_t _align;
 };
 
-template<typename T>
+template<typename T, size_t Align = alignof(T)>
 struct dma_object {
+	static_assert(Align >= alignof(T), "Align must satisfy the alignment of T");
+
 	friend void swap(dma_object &a, dma_object &b) {
 		using std::swap;
 		swap(a._ptr, b._ptr);
@@ -355,9 +376,9 @@ struct dma_object {
 	template<typename... Args>
 	explicit dma_object(dma_pool *pool, Args &&... args) {
 		if(pool) {
-			_ptr = pool->allocate(sizeof(T), 1, alignof(T));
+			_ptr = pool->allocate(sizeof(T), 1, Align);
 		}else{
-			auto p = operator new(sizeof(T), std::align_val_t(alignof(T)));
+			auto p = operator new(sizeof(T), std::align_val_t(Align));
 			_ptr = make_host_dma_ptr(p);
 		}
 		new (_ptr.get_raw_ptr()) T{std::forward<Args>(args)...};
@@ -368,9 +389,9 @@ struct dma_object {
 			return;
 		data()->~T();
 		if(_ptr.pool()) {
-			_ptr.pool()->deallocate(_ptr, sizeof(T), 1, alignof(T));
+			_ptr.pool()->deallocate(_ptr, sizeof(T), 1, Align);
 		}else{
-			operator delete(data(), sizeof(T), std::align_val_t(alignof(T)));
+			operator delete(data(), sizeof(T), std::align_val_t(Align));
 		}
 	}
 
@@ -384,6 +405,10 @@ struct dma_object {
 	}
 
 	constexpr size_t size() const {
+		return sizeof(T);
+	}
+
+	constexpr size_t size_bytes() const {
 		return sizeof(T);
 	}
 
@@ -415,8 +440,10 @@ private:
 	dma_ptr _ptr;
 };
 
-template<typename T>
+template<typename T, size_t Align = alignof(T)>
 struct dma_array {
+	static_assert(Align >= alignof(T), "Align must satisfy the alignment of T");
+
 	friend void swap(dma_array &a, dma_array &b) {
 		using std::swap;
 		swap(a._ptr, b._ptr);
@@ -434,10 +461,10 @@ struct dma_array {
 	explicit dma_array(dma_pool *pool, size_t size)
 	: _size{size} {
 		if(pool) {
-			_ptr = pool->allocate(sizeof(T), _size, alignof(T));
+			_ptr = pool->allocate(sizeof(T), _size, Align);
 		}else{
 			// TODO: Check for overflow.
-			auto p = operator new(sizeof(T) * _size, std::align_val_t(alignof(T)));
+			auto p = operator new(sizeof(T) * _size, std::align_val_t(Align));
 			_ptr = make_host_dma_ptr(p);
 		}
 		new (_ptr.get_raw_ptr()) T[_size];
@@ -449,10 +476,10 @@ struct dma_array {
 		for(size_t i = 0; i < _size; ++i)
 			data()[i].~T();
 		if(_ptr.pool()) {
-			_ptr.pool()->deallocate(_ptr, sizeof(T), _size, alignof(T));
+			_ptr.pool()->deallocate(_ptr, sizeof(T), _size, Align);
 		}else{
 			// TODO: Check for overflow.
-			operator delete(data(), sizeof(T) * _size, std::align_val_t(alignof(T)));
+			operator delete(data(), sizeof(T) * _size, std::align_val_t(Align));
 		}
 	}
 
@@ -467,6 +494,10 @@ struct dma_array {
 
 	size_t size() const {
 		return _size;
+	}
+
+	size_t size_bytes() const {
+		return sizeof(T) * _size;
 	}
 
 	T *data() {
