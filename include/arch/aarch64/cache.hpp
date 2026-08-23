@@ -20,7 +20,10 @@ inline void cache_clean_poc(uintptr_t addr, size_t size) {
 	for (auto cur = addr & ~(dsz - 1); cur < addr + size; cur += dsz) {
 		asm volatile ("dc cvac, %0" :: "r"(cur) : "memory");
 	}
-	asm volatile ("dmb sy" ::: "memory");
+	// Even though a dmb is enough to order dc against memory accesses,
+	// the ARMARM, section "Ordering and completion of data and instruction cache instructions"
+	// requires a dsb to wait for the dc to complete from the perspective of other observers on the system bus.
+	asm volatile ("dsb sy" ::: "memory");
 }
 
 // Clean and invalidate cache lines by VA to PoC.
@@ -29,7 +32,10 @@ inline void cache_clean_invalidate_poc(uintptr_t addr, size_t size) {
 	for (auto cur = addr & ~(dsz - 1); cur < addr + size; cur += dsz) {
 		asm volatile ("dc civac, %0" :: "r"(cur) : "memory");
 	}
-	asm volatile ("dmb sy" ::: "memory");
+	// Even though a dmb is enough to order dc against memory accesses,
+	// the ARMARM, section "Ordering and completion of data and instruction cache instructions"
+	// requires a dsb to wait for the dc to complete from the perspective of other observers on the system bus.
+	asm volatile ("dsb sy" ::: "memory");
 }
 
 } // namespace detail_
