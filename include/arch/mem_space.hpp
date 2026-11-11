@@ -33,6 +33,8 @@ struct base_mem_space {
 		return base_mem_space(reinterpret_cast<void *>(_base + offset));
 	}
 
+	uintptr_t base() const { return _base; }
+
 	template<typename RT>
 	void store(RT r, typename RT::rep_type value) const {
 		auto p = reinterpret_cast<typename RT::bits_type *>(_base + r.offset());

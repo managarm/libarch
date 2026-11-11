@@ -39,6 +39,8 @@ struct io_space {
 		return io_space(_base + offset);
 	}
 
+	uint16_t base() const { return _base; }
+
 	template<typename RT>
 	void store(RT r, typename RT::rep_type value) const {
 		auto v = static_cast<typename RT::bits_type>(value);
