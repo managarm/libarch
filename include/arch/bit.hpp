@@ -21,7 +21,7 @@ static_assert(endian::native == endian::little || endian::native == endian::big,
 		"only little and big endian are supported");
 
 template<typename T>
-inline T bswap(T val) {
+inline constexpr T bswap(T val) {
 	static_assert(std::is_integral_v<T>, "T must be an integral type");
 	if constexpr (sizeof(T) == 1) {
 		return val;
@@ -37,7 +37,7 @@ inline T bswap(T val) {
 }
 
 template<endian NewEndian, endian OldEndian = endian::native, typename T>
-inline T convert_endian(T native) {
+inline constexpr T convert_endian(T native) {
 	static_assert(std::is_integral_v<T>, "T must be an integral type");
 	if constexpr (NewEndian != OldEndian) {
 		return bswap(native);
@@ -48,13 +48,13 @@ inline T convert_endian(T native) {
 
 // X forces users to specify T.
 template<endian To, typename T, typename X = T>
-inline T to_endian(X v) {
+inline constexpr T to_endian(X v) {
 	return convert_endian<To, endian::native, T>(v);
 }
 
 // X forces users to specify T.
 template<endian From, typename T, typename X = T>
-inline T from_endian(X v) {
+inline constexpr T from_endian(X v) {
 	return convert_endian<endian::native, From, T>(v);
 }
 
