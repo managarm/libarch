@@ -17,6 +17,7 @@ if get_option('install_headers')
 		'include/arch/register.hpp',
 		'include/arch/variable.hpp',
 		'include/arch/bit.hpp',
+		'include/arch/endian.hpp',
 		'include/arch/cache.hpp',
 		'include/arch/barrier.hpp',
 		subdir: 'arch/')
