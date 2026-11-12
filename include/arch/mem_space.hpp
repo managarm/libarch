@@ -8,6 +8,8 @@
 #	include <arch/arm/mem_space.hpp>
 #elif defined(__riscv) && (__riscv_xlen == 64)
 #	include <arch/riscv64/mem_space.hpp>
+#elif defined(__sparc__) && defined(__arch64__)
+#	include <arch/sparc64/mem_space.hpp>
 #else
 #	error Unsupported architecture
 #endif

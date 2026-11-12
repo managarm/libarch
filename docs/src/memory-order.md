@@ -73,6 +73,8 @@ to guarantee the constraints of `load()` and `store()`:
 |Aarch64|`store()`|`dmb osh`¹|
 |RISC-V|`load()`|`fence r, i`²|`fence i, rw`|
 |RISC-V|`store()`|`fence rw, o`|`fence o, w`²|
+|SPARC64|`load()`|`membar #Sync`|`membar #Sync`|
+|SPARC64|`store()`|`membar #Sync`|`membar #Sync`|
 
 ¹ `dmb oshld` is enough to implement `read()` since it orders reads vs. reads and writes.
 On the other hand, `store()` requires `dmb osh`
@@ -140,6 +142,8 @@ to guarantee the constraints of `load()` and `store()`:
 |Aarch64|`store()`|`dmb ish`¹|
 |RISC-V|`load()`|²|`fence r, rw`|
 |RISC-V|`store()`|`fence rw, w`|²|
+|SPARC64|`load()`||`membar #LoadLoad \| #LoadStore`|
+|SPARC64|`store()`|`membar #LoadStore \| #StoreStore`||
 
 ¹ See explanation for `arch::io_mem_space`.
 Also note that inner shareable barriers are enough for main memory accesses.
@@ -164,8 +168,60 @@ to guarantee the constraints of `load()` and `store()`:
 |Aarch64|`store()`|`dmb osh`¹|
 |RISC-V|`load()`|`fence r, i`²|`fence ir, rw`³|
 |RISC-V|`store()`|`fence rw, ow`³|`fence o, w`²|
+|SPARC64|`load()`|`membar #Sync`|`membar #Sync`|
+|SPARC64|`store()`|`membar #Sync`|`membar #Sync`|
 
 ¹ ² See explanation for `arch::io_mem_space`.
 
 ³ This barrier needs to be strong enough to order
 `load()` and `store()` to both main memory and I/O memory.
+
+## SPARC64 DMA cache maintenance
+
+On SPARC64, `cache_writeback()`, `cache_clean_or_invalidate()`, and
+`cache_invalidate()` each issue `membar #Sync` with a compiler memory barrier.
+They complete preceding memory accesses but do not explicitly clean or invalidate
+cache lines. The address and size are consequently unused.
+
+This implementation relies on cache-coherent DMA, as provided by many SPARC64
+systems. For such transfers, hardware makes CPU writes visible to devices and
+device writes visible to CPUs without software evicting cache lines. Data may
+remain cached: the required guarantee is visibility within the coherent domain,
+not that every write has reached physical memory. Ordering is still necessary,
+which is why the hooks retain a completion barrier.
+
+SPARC V9 does not provide a portable instruction for cleaning and invalidating an
+arbitrary data-cache range. In particular, `flush` synchronizes instruction
+fetches; it is not a general data-cache writeback primitive. Actual data-cache
+maintenance depends on the processor and its cache hierarchy. For example, on
+UltraSPARC I/II, invalidating the write-through L1 data cache does not write back
+modified data from the external cache. The latter requires a block-commit store
+sequence or displacement flushing. These methods have additional requirements,
+such as exclusive access to the affected blocks or knowledge of cache geometry
+and suitable eviction memory. See the
+[UltraSPARC I/II User's Manual, section 5.2](https://www.oracle.com/technetwork/server-storage/sun-sparc-enterprise/documentation/sparc-usersmanual-2516676.pdf).
+They cannot be replaced by a single generic cache-line loop suitable for all
+SPARC64 processors and execution environments.
+
+CPU cache coherence also does not imply that all intermediate I/O buffers have
+been drained. Some host bridges have optional DMA streaming buffers that need
+explicit synchronization through bridge registers. This requires the device's
+DMA mapping and bridge state, which a CPU virtual address and size do not
+identify. An environment using libarch must either bypass those buffers or
+provide the required synchronization through its own DMA facilities. The cache
+hooks do not perform bridge-specific DMA synchronization.
+
+The barrier-only implementation therefore supports transfers whose cache
+visibility is guaranteed by hardware and whose other synchronization requirements
+are handled by the surrounding environment. It does not make genuinely
+non-coherent DMA work: such an environment needs an appropriate cache-maintenance
+implementation or mappings that avoid the need for one. Supporting a processor
+does not by itself establish that every DMA mapping satisfies these requirements.
+
+As on other architectures, `dma_barrier` skips the hooks when constructed with
+`dma_coherent = true`. Access ordering must still be provided separately, for
+example by the ordered memory-space operations described above. Instruction-cache
+synchronization, maintenance of virtual cache aliases, and persistence outside
+the coherent domain are separate requirements and are not provided by these DMA
+hooks. They remain the responsibility of the surrounding runtime or operating
+system.
